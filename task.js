@@ -32,7 +32,7 @@ class Project {
     }
   }
 class Task {
-  constructor(id, title, description, duedate, prioritylevel, taskstatus,projectId) {
+  constructor(id, title, description, duedate, prioritylevel, taskstatus,projectId,assignedTo) {
     this.id = id;
     this.title = title;
     this.description = description;
@@ -40,6 +40,7 @@ class Task {
     this.prioritylevel = prioritylevel;
     this.status = taskstatus;
     this.projectId = projectId;
+    this.assignedTo = assignedTo;
   }
 }
 
@@ -49,6 +50,7 @@ class TaskMethods {
     this.projects=[]
     this.currentId = 0;
     this.currentProjectId = 0;
+    this.users = [];
   }
   addProject(name) {
     this.currentProjectId += 1;
@@ -76,7 +78,7 @@ class TaskMethods {
   gettasklist() {
     return this.tasks;
   }
-  create(title, description, duedate, prioritylevel, taskstatus,projectId) {
+  create(title, description, duedate, prioritylevel, taskstatus,projectId,assignedTo) {
     this.currentId = this.currentId + 1;
     const newTask = new Task(
       this.currentId,
@@ -85,13 +87,17 @@ class TaskMethods {
       duedate,
       prioritylevel,
       taskstatus,
-      projectId
+      projectId,
+      assignedTo
     );
 
     this.tasks.push(newTask);
+    if (assignedTo) {
+        console.log(`Notification: Task assigned to user ID ${assignedTo}.`);
+      }
     return this.tasks;
   }
-  update(idInput, title, description, duedate, prioritylevel, taskstatus,projectId) {
+  update(idInput, title, description, duedate, prioritylevel, taskstatus,projectId,assignedTo) {
     let task = this.tasks.find((task) => idInput == task.id);
 
     if (task) {
@@ -101,6 +107,10 @@ class TaskMethods {
       task.prioritylevel = prioritylevel || task.prioritylevel;
       task.taskstatus = taskstatus || task.status;
       task.projectId = projectId || task.projectId;
+      task.assignedTo = assignedTo || task.assignedTo;
+      if (assignedTo) {
+        console.log(`Notification: Task reassigned to user  ${assignedTo}.`);
+      }
       return task;
     } else {
       return "Task not found";
@@ -193,17 +203,20 @@ const addProject = () => {
         rl.question("Enter duedate: ", (duedate) => {
           rl.question("Enter Priority Level: ", (prioritylevel) => {
             rl.question("Enter Status: ", (taskstatus) => {
-              rl.question("Enter Project ID (optional, leave empty if not applicable): ", (projectId) => {
-                let newaddTask = newTask.create(
-                  title,
-                  description,
-                  duedate,
-                  prioritylevel,
-                  taskstatus,
-                  projectId ? parseInt(projectId) : null
-                );
-                console.log("Task added", newaddTask);
-                mainmenu();
+              rl.question("Enter Project ID : ", (projectId) => {
+                rl.question("Enter User ID to assign (optional, leave empty if not applicable): ", (assignedTo) => {
+                    let newaddTask = newTask.create(
+                      title,
+                      description,
+                      duedate,
+                      prioritylevel,
+                      taskstatus,
+                      projectId ? parseInt(projectId) : null,
+                      assignedTo ? parseInt(assignedTo) : null
+                    );
+                    console.log("Task added", newaddTask);
+                    mainmenu();
+                  });
               });
             });
           });
@@ -217,34 +230,40 @@ const addProject = () => {
       const task = newTask.getTaskById(idInput);
       if (task) {
         rl.question(
-          "Enter new title (leave empty to keep current): ",
+          "Enter new title : ",
           (title) => {
             rl.question(
-              "Enter new description (leave empty to keep current): ",
+              "Enter new description : ",
               (description) => {
                 rl.question(
-                  "Enter new due date (YYYY-MM-DD, leave empty to keep current): ",
+                  "Enter new due date (YYYY-MM-DD): ",
                   (duedate) => {
                     rl.question(
-                      "Enter new priority level (low, medium, high, leave empty to keep current): ",
+                      "Enter new priority level : ",
                       (prioritylevel) => {
                         rl.question(
-                          "Enter new status (todo, in-progress, done, leave empty to keep current): ",
+                          "Enter new status : ",
                           (taskstatus) => {
                             rl.question(
-                              "Enter new Project ID (leave empty to keep current): ",
+                              "Enter new Project ID : ",
                               (projectId) => {
-                                const updatedTask = newTask.update(
-                                  idInput,
-                                  title,
-                                  description,
-                                  duedate,
-                                  prioritylevel,
-                                  taskstatus,
-                                  projectId ? parseInt(projectId) : null
-                                );
-                                console.log("Task updated:", updatedTask);
-                                mainmenu();
+                                rl.question(
+                                    "Enter new User ID to assign (leave empty to keep current): ",
+                                    (assignedTo) => {
+                                      const updatedTask = newTask.update(
+                                        idInput,
+                                        title,
+                                        description,
+                                        duedate,
+                                        prioritylevel,
+                                        taskstatus,
+                                        projectId ? parseInt(projectId) : null,
+                                        assignedTo ? parseInt(assignedTo) : null
+                                      );
+                                      console.log("Task updated:", updatedTask);
+                                      mainmenu();
+                                    }
+                                  );
                               }
                             );
                           }
